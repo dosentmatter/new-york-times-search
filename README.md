@@ -16,7 +16,7 @@ The following **required** functionality is completed:
   * [x] Sort order (oldest or newest)
 * [x] Subsequent searches have any filters applied to the search results
 * [x] User can tap on any article in results to view the contents in an embedded browser.
-* [ ] User can **scroll down to see more articles**. The maximum number of articles is limited by the API search.
+* [x] User can **scroll down to see more articles**. The maximum number of articles is limited by the API search.
 
 The following **optional** features are implemented:
 
@@ -47,7 +47,7 @@ The following **additional** features are implemented:
 
 Here's a walkthrough of implemented user stories:
 
-<img src='http://i.imgur.com/3nsUdzr.gif' title='Video Walkthrough' width='' alt='Video Walkthrough' />
+<img src='http://i.imgur.com/iIVSUlj.gif' title='Video Walkthrough' width='' alt='Video Walkthrough' />
 
 GIF created with [LiceCap](http://www.cockos.com/licecap/).
 
