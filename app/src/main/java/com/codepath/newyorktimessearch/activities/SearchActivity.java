@@ -4,6 +4,7 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
+import android.text.TextUtils;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -39,20 +40,29 @@ public class SearchActivity extends AppCompatActivity {
     ArrayList<Article> articles;
     ArticleArrayAdapter articleAdapter;
 
+    private static final int REQUEST_FILTER = 0;
+
+    private String date = "";
+    private String sort = "";
+    private int sortPosition = 0;
+    private boolean arts = false;
+    private boolean fashion = false;
+    private boolean sports = false;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_search);
-        Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
+        Toolbar toolbar = (Toolbar)findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
 
         setupViews();
     }
 
     public void setupViews() {
-        etQuery = (EditText) findViewById(R.id.etQuery);
-        gvResults = (GridView) findViewById(R.id.gvResults);
-        btnSearch = (Button) findViewById(R.id.btnSearch);
+        etQuery = (EditText)findViewById(R.id.etQuery);
+        gvResults = (GridView)findViewById(R.id.gvResults);
+        btnSearch = (Button)findViewById(R.id.btnSearch);
 
         articles = new ArrayList<>();
         articleAdapter = new ArticleArrayAdapter(this, articles);
@@ -78,9 +88,23 @@ public class SearchActivity extends AppCompatActivity {
         //noinspection SimplifiableIfStatement
         if (id == R.id.action_settings) {
             return true;
+        } if (id == R.id.action_filter) {
+            setFilters();
+            return true;
         }
 
         return super.onOptionsItemSelected(item);
+    }
+
+    private void setFilters() {
+        Intent filterIntent = new Intent(getApplicationContext(),
+                                         FilterActivity.class);
+        filterIntent.putExtra("date", date);
+        filterIntent.putExtra("sortPosition", sortPosition);
+        filterIntent.putExtra("arts", arts);
+        filterIntent.putExtra("fashion", fashion);
+        filterIntent.putExtra("sports", sports);
+        startActivityForResult(filterIntent, REQUEST_FILTER);
     }
 
     private void setupGridViewListeners() {
@@ -112,6 +136,27 @@ public class SearchActivity extends AppCompatActivity {
         params.put("api-key", API_KEY);
         params.put("page", 0);
         params.put("q", query);
+        if (!TextUtils.isEmpty(date)) {
+            params.put("begin_date", date);
+        }
+        if (!TextUtils.isEmpty(sort)) {
+            params.put("sort", sort);
+        }
+        if (arts || fashion || sports) {
+            ArrayList<String> filter = new ArrayList<>();
+            if (arts) {
+                filter.add("\"Arts\"");
+            }
+            if (fashion) {
+                filter.add("\"Fashion & Style\"");
+            }
+            if (sports) {
+                filter.add("\"Sports\"");
+            }
+            String filterQuery = String.format("news_desk:(%s)",
+                                               TextUtils.join(" ", filter));
+            params.put("fq", filterQuery);
+        }
         client.get(URL, params,
                    new JsonHttpResponseHandler() {
                        @Override
@@ -141,5 +186,17 @@ public class SearchActivity extends AppCompatActivity {
                                            throwable);
                        }
                    });
+    }
+
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        if (resultCode == RESULT_OK && requestCode == REQUEST_FILTER) {
+            date = data.getStringExtra("date");
+            sort = data.getStringExtra("sort");
+            sortPosition = data.getIntExtra("sortPosition", 0);
+            arts = data.getBooleanExtra("arts", false);
+            fashion = data.getBooleanExtra("fashion", false);
+            sports = data.getBooleanExtra("sports", false);
+        }
     }
 }
