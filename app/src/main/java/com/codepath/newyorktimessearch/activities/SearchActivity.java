@@ -17,6 +17,7 @@ import android.widget.GridView;
 import com.codepath.newyorktimessearch.R;
 import com.codepath.newyorktimessearch.adapters.ArticleArrayAdapter;
 import com.codepath.newyorktimessearch.models.Article;
+import com.codepath.newyorktimessearch.utils.EndlessScrollListener;
 import com.loopj.android.http.AsyncHttpClient;
 import com.loopj.android.http.JsonHttpResponseHandler;
 import com.loopj.android.http.RequestParams;
@@ -122,10 +123,26 @@ public class SearchActivity extends AppCompatActivity {
                   }
               };
 
+        EndlessScrollListener gridViewOnScrollListener
+            = new EndlessScrollListener() {
+                  @Override
+                  public boolean onLoadMore(int page, int totalItemsCount) {
+                      loadNextDataFromApi(page);
+                      return true;
+                  }
+              };
+
         gvResults.setOnItemClickListener(gridViewItemClickListener);
+        gvResults.setOnScrollListener(gridViewOnScrollListener);
     }
 
     public void onArticleSearch(View view) {
+        articles.clear();
+        articleAdapter.notifyDataSetChanged();
+        loadNextDataFromApi(0);
+    }
+
+    public void loadNextDataFromApi(int page) {
         String query = etQuery.getText().toString();
 
         AsyncHttpClient client = new AsyncHttpClient();
@@ -134,7 +151,7 @@ public class SearchActivity extends AppCompatActivity {
 
         RequestParams params = new RequestParams();
         params.put("api-key", API_KEY);
-        params.put("page", 0);
+        params.put("page", page);
         params.put("q", query);
         if (!TextUtils.isEmpty(date)) {
             params.put("begin_date", date);
@@ -170,9 +187,7 @@ public class SearchActivity extends AppCompatActivity {
                                              .getJSONArray("docs");
                                ArrayList<Article> articleResults
                                    = Article.fromJSONArray(articleJsonResults);
-                               articles.clear();
-                               articles.addAll(articleResults);
-                               articleAdapter.notifyDataSetChanged();
+                               articleAdapter.addAll(articleResults);
                            } catch (JSONException e) {
                                Log.e(LOG_TAG, e.getMessage());
                            }
